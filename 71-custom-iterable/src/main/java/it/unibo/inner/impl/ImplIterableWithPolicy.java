@@ -1,7 +1,7 @@
 package it.unibo.inner.impl;
 
-import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import it.unibo.inner.api.IterableWithPolicy;
@@ -9,11 +9,11 @@ import it.unibo.inner.api.Predicate;
 
 public class ImplIterableWithPolicy<T> implements IterableWithPolicy<T> {
 
-    private final T[] elements;
+    private final List<T> elements;
     private Predicate<T> iteratorFilter;
 
     public ImplIterableWithPolicy(final T[] array, Predicate<T> filter) {
-        this.elements = Arrays.copyOf(array, array.length);
+        this.elements = List.of(array);
         this.iteratorFilter = filter;
     }
 
@@ -32,9 +32,19 @@ public class ImplIterableWithPolicy<T> implements IterableWithPolicy<T> {
     }
 
     @Override
-    public void setIterationPolicy(Predicate<T> filter) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setIterationPolicy'");
+    public void setIterationPolicy(final Predicate<T> filter) {
+        this.iteratorFilter = filter;
+    }
+
+    @Override
+    public String toString() {
+        String out="[";
+        Iterator<T> it = this.iterator();
+        while (it.hasNext()) {
+            out = out + it.next().toString() + ", ";
+        }
+        out = out + "]";
+        return out;
     }
     
     class MyIterator implements Iterator<T> {
@@ -42,14 +52,20 @@ public class ImplIterableWithPolicy<T> implements IterableWithPolicy<T> {
         private int i=0;
 
         public boolean hasNext() {
-            return i < elements.length-1;
+            while (i < elements.size()) {
+                if (iteratorFilter.test(elements.get(i))) {
+                    return true;
+                }
+                i++;
+            }
+            return false;
         }
 
         public T next() {
             if (this.hasNext()){
-                return elements[i++];
+                    return elements.get(i++);
             }
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("La lista è finita!");
         }
 
     }
